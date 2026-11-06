@@ -170,21 +170,21 @@ ${cta}
         <a href="${U('/')}" aria-label="SIBM, accueil"><img src="/assets/brand/sibm-logo.svg" alt="SIBM, Société Ivoirienne de Béton Manufacturé" width="168" height="158" loading="lazy"></a>
         <p class="t-small" style="margin-top:24px"><a class="link" href="mailto:${D.company.email}">${D.company.email}</a></p>
       </div>
-      <div><h2>${L.footer.catalogue}</h2><ul>${footFam}</ul></div>
-      <div><h2>${L.footer.company}</h2><ul>
+      <div><h3>${L.footer.catalogue}</h3><ul>${footFam}</ul></div>
+      <div><h3>${L.footer.company}</h3><ul>
         <li><a href="${U('/presentation')}">${L.nav.presentation}</a></li>
         <li><a href="${U('/references')}">${L.nav.references}</a></li>
         <li><a href="${U('/actualites')}">${L.nav.news}</a></li>
         <li><a href="${U('/galerie')}">${L.nav.gallery}</a></li>
         <li><a href="${U('/qualite-securite-environnement')}">${L.footer.qse}</a></li>
         <li><a href="${U('/carrieres')}">${L.nav.careers}</a></li></ul></div>
-      <div><h2>${L.footer.services}</h2><ul>
+      <div><h3>${L.footer.services}</h3><ul>
         <li><a href="${U('/services/bureau-d-etude')}">${L.services.studies.name}</a></li>
         <li><a href="${U('/services/laboratoire')}">${L.services.lab.name}</a></li>
         <li><a href="${U('/services/logistique')}">${L.services.logistics.name}</a></li>
         <li><a href="${U('/devis')}">${L.mainAction}</a></li>
         <li><a href="${U('/reclamation')}">${L.footer.complaint}</a></li></ul></div>
-      <div><h2>${L.footer.sites}</h2><ul>${footSites}</ul></div>
+      <div><h3>${L.footer.sites}</h3><ul>${footSites}</ul></div>
     </div>
     <div class="foot__legal"><span>© ${YEAR} SIBM. ${L.footer.rights}</span><span>${L.footer.credits}</span><a class="link" href="${U('/mentions-legales')}">${L.footer.legal}</a></div>
   </div>
@@ -259,8 +259,8 @@ function homeBody(L, U) {
   const media = heroVideo
     ? `<div class="hero__media" aria-hidden="true"><video muted loop playsinline preload="none" data-src="/assets/video/hero.mp4" poster="${heroPhoto ? `/assets/photos/accueil/hero.${heroPhoto}` : ''}"></video></div>`
     : heroPhoto
-      ? `<div class="hero__media" aria-hidden="true" data-parallax><img class="hero__poster" src="/assets/photos/accueil/hero.${heroPhoto}" alt="" fetchpriority="high"></div>`
-      : `<div class="hero__comp" data-parallax>${V.heroComposition}</div>`;
+      ? `<div class="hero__media" aria-hidden="true"><div class="hero__layer" data-parallax><img class="hero__poster" src="/assets/photos/accueil/hero.${heroPhoto}" alt="" fetchpriority="high"></div></div>`
+      : `<div class="hero__comp"><div class="hero__layer" data-parallax>${V.heroComposition}</div><div class="grain" aria-hidden="true"></div></div>`;
 
   const figures = L.home.figures
     .map((f) => `<div class="fig"><dt${f.count ? ' data-m-count' : ''}>${esc(f.v)}</dt><dd>${esc(f.l)}</dd></div>`)
@@ -342,7 +342,6 @@ function homeBody(L, U) {
   return `
 <section class="hero" aria-labelledby="hero-title">
   ${media}
-  <div class="grain" aria-hidden="true"></div>
   <div class="wrap hero__text">
     <p class="hero__kicker eyebrow">${esc(L.home.iso)}</p>
     <h1 class="t-h1" id="hero-title" aria-label="${esc(L.home.h1)}">${L.home.h1Lines.map((l, i) => `<span class="ln" aria-hidden="true"><span style="--i:${i}">${l}</span></span>`).join('')}</h1>
@@ -806,6 +805,7 @@ ${L.gallery.groups
   add(lang, L, {
     url: '/devis',
     nav: '',
+    cta: false,
     priority: 0.9,
     title: L.quote.title + ' | SIBM',
     description: L.quote.description,
