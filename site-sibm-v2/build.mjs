@@ -299,7 +299,7 @@ function homeBody(L, U) {
           <h2 class="t-h2" id="story-${slug}-t">${esc(r.name)}</h2>
           <p class="story__place">${esc(r.place)}</p>
           <div class="story__tags"><p class="t-label muted" style="margin-bottom:10px">${L.references.supplied}</p>${r.labels.map((x, k) => `<span class="tag" style="--i:${k}">${esc(x)}</span>`).join('')}</div>
-          <p style="margin-top:24px"><a class="link" href="${U('/references#' + r.slug)}">${L.home.refsCta}</a></p>
+          ${i === storyRefs.length - 1 ? `<p style="margin-top:24px"><a class="link" href="${U('/references')}">${L.home.refsCta}</a></p>` : ''}
         </div></div>
       </section>`;
     })
@@ -378,7 +378,7 @@ function homeBody(L, U) {
   ${story}
 </div>
 
-<section class="sec sec--screens" style="--h:2" aria-labelledby="map-title"><div class="wrap">
+<section class="sec sec--screens" style="--h:2;--hm:2" aria-labelledby="map-title"><div class="wrap">
   ${secHead('04', L.home.mapTitle, L.home.mapLead).replace('<h2 class="t-h2"', '<h2 class="t-h2" id="map-title"')}
   ${mapBlock}
   <div class="clients-block">
@@ -389,7 +389,7 @@ function homeBody(L, U) {
 
 </div></section>
 
-<section class="sec sec--screens" style="--h:1" aria-labelledby="news-title"><div class="wrap">
+<section class="sec sec--screens" style="--h:1;--hm:2" aria-labelledby="news-title"><div class="wrap">
   ${secHead('05', L.home.newsTitle).replace('<h2 class="t-h2"', '<h2 class="t-h2" id="news-title"')}
   <div class="cards cards--3">${D.news.slice(0, 3).map((n) => newsCard(L, U, n)).join('')}</div>
   <div class="btn-row" style="margin-top:48px">${btn(U('/actualites'), L.home.newsCta, 'secondary')}</div>

@@ -115,6 +115,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 @media (max-width: 639px) { .nav__cta { display: none; } .nav__toggle { margin-inline-start: auto; } .logo__name { display: none; } }
 /* Taste Skill, layout-v4 §2 : une section = un ou deux écrans (--h), contenu calé en haut */
 @media (min-width: 640px) { .sec--screens { height: calc(var(--h, 1) * 100svh); min-height: calc(var(--h, 1) * 560px); } }
+@media (max-width: 639px) { .sec--screens { height: calc(var(--hm, var(--h, 1)) * 100lvh); } }
 .clients-block { margin-top: var(--s-8); }
 .sec--screens .cards--3 .photo { --r: 16/9 !important; }
 
@@ -317,7 +318,8 @@ html.fx .pin circle.halo { animation: halo 2.8s cubic-bezier(.2,.8,.2,1) infinit
 .clients { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-6) var(--s-7); }
 .client { display: inline-flex; align-items: center; justify-content: center; height: 48px; min-width: 96px; }
 .client img { height: 40px; width: auto; max-width: 160px; object-fit: contain; mix-blend-mode: multiply; filter: grayscale(1); opacity: .6; transition: filter 300ms ease, opacity 300ms ease; }
-.client__name { font: 500 20px/1 var(--font-text); letter-spacing: -.01em; color: var(--ink); opacity: .6; filter: grayscale(1); transition: opacity 300ms ease, color 300ms ease; white-space: nowrap; }
+/* nom en texte en attendant le logo : opacité .68 (et non .6) pour garder un contraste AA de 4,5:1 */
+.client__name { font: 500 20px/1 var(--font-text); letter-spacing: -.01em; color: var(--ink); opacity: .68; filter: grayscale(1); transition: opacity 300ms ease, color 300ms ease; white-space: nowrap; }
 @media (hover: hover) {
   .client:is(:hover, :focus-within) img, .client:is(:hover, :focus-within) .client__name { filter: none; opacity: 1; }
   .client:is(:hover, :focus-within) .client__name { color: var(--sibm-green); }
