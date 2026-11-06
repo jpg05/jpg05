@@ -80,7 +80,7 @@
   var comp = d.querySelector('[data-parallax]');
   if (comp) {
     var heroOn = true, ticking = false;
-    if ('IntersectionObserver' in w) new IntersectionObserver(function (e) { heroOn = e[0].isIntersecting; }).observe(comp.parentNode);
+    if ('IntersectionObserver' in w) new IntersectionObserver(function (e) { heroOn = e[0].isIntersecting; }).observe(comp.closest('.hero') || comp.parentNode);
     w.addEventListener('scroll', function () {
       if (!heroOn || ticking) return; ticking = true;
       requestAnimationFrame(function () { comp.style.transform = 'translate3d(0,' + (w.scrollY * 0.28).toFixed(1) + 'px,0)'; ticking = false; });
