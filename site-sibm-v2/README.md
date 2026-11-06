@@ -5,8 +5,17 @@ d'exécution. **Ce dossier est indépendant du site de production (`sibmci.com`)
 
 - 63 pages générées (accueil, présentation, 6 familles, 31 fiches produit, 3 services, références, 10 actualités, galerie,
   contact, réclamation, devis, QSE, carrières, mentions légales, 404).
-- Polices auto-hébergées (Archivo, Hanken Grotesk, licence OFL), CSS ~12 Ko, JS ~4 Ko.
-- Direction artistique : fond blanc, vert de marque `#1F6B3F` en seul accent, grille éditoriale et repères techniques.
+- Logo officiel (`src/assets/brand/`), charte SIBM : vert `#074914` (structure, titres, boutons), vert clair `#065C2A`,
+  rouge `#DE251F` en accent unique. Fond blanc ; la bande d'appel verte est la seule section sombre.
+- Polices auto-hébergées Besley et Albert Sans (licence OFL). Design system tiré avec le skill Taste Skill
+  (`.agents/skills/design-taste-frontend`, historique dans `.taste-skill/`) ; sa couche de micro-interactions
+  (`src/assets/vendor/taste/`) est copiée sans modification.
+- Effets (`src/assets/js/fx.js`, JS natif sans dépendance) : hero en parallaxe avec titre révélé, compteurs, familles en
+  défilement horizontal épinglé, plans tracés, références en storytelling épinglé, carte interactive des 5 sites, boutons
+  magnétiques, tilt, curseur, défilé des clients avec bouton pause, transitions de page (View Transitions). Tout est
+  désactivé sous `prefers-reduced-motion` et la vidéo du hero ne se charge jamais en mode économie de données.
+- JS total ~10 Ko compressés, CSS ~14 Ko compressés.
+- `FILLER_REPORT.md` (généré) liste tout le contenu provisoire ; `CONTENT_TODO.md` liste le contenu à fournir.
 
 ## Lancer en local
 
@@ -28,14 +37,14 @@ Variables d'environnement (toutes optionnelles) :
 | Variable | Rôle | Défaut |
 |---|---|---|
 | `SITE_URL` | URL de base (canonical, Open Graph, sitemap, JSON-LD) | `https://www.sibmci.com` |
-| `FORM_ENDPOINT` | URL du webhook n8n qui reçoit les 4 formulaires (POST `multipart/form-data`) | vide : les formulaires affichent « envoi non activé » |
+| `FORM_ENDPOINT` | URL du webhook n8n qui reçoit les 5 formulaires (POST `multipart/form-data`) | vide : les formulaires affichent « envoi non activé » |
 | `WHATSAPP_NUMBER` | Numéro WhatsApp, chiffres seuls avec indicatif (ex. `2250700000000`) | vide : seul le bouton téléphone s'affiche |
 | `PHONE_NUMBER` | Numéro du bouton d'appel mobile (format `+225…`) | standard du siège |
 
 Exemple : `FORM_ENDPOINT=https://n8n.exemple.ci/webhook/sibm SITE_URL=https://nouveau.sibmci.com npm run build`
 
-Champs reçus par le webhook : `formulaire` (`devis`, `reclamation`, `contact`, `candidature`), `page`, puis les champs du
-formulaire (`type`, `societe`, `nom`, `contact`, `telephone`, `email`, `famille`, `projet`, `ville`, `produit`,
+Champs reçus par le webhook : `formulaire` (`devis`, `fiche-technique`, `reclamation`, `contact`, `candidature`), `page`, puis les champs du
+formulaire (`type`, `societe`, `nom`, `contact`, `telephone`, `email`, `famille`, `projet`, `ville`, `site`, `produit`,
 `description`, `motif`, `site`, `message`, `domaine`) et les fichiers `piece_jointe` ou `cv`. Le champ piège `website`
 n'est jamais envoyé : s'il est rempli, la requête est abandonnée côté navigateur. **Le webhook doit aussi filtrer le spam
 côté serveur** (limite de débit, taille des fichiers) : une protection côté client ne suffit pas.

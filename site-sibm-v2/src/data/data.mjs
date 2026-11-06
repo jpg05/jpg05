@@ -333,3 +333,48 @@ export const redirectMap = [
   ['/index.php/pages/index/11/fr', '/contact'],
   ['/index.php/pages/index/12/fr', '/reclamation'],
 ];
+
+// ---------------------------------------------------------------- Textes d'usage (BRIEF V2 §3, addendum)
+// Remplissage autorisé : texte générique et vrai sur l'usage de la catégorie, sans chiffre, norme, dimension ni
+// performance. Rendu avec data-filler="true", listé dans FILLER_REPORT.md, à remplacer par le texte validé SIBM.
+export const usage = {
+  'bordure-t2': 'Délimite la chaussée et les trottoirs, et guide les eaux de surface vers les caniveaux.',
+  'dalle-carree-49x49': 'Revêtement des trottoirs, des places et des cheminements piétons.',
+  'pave-rectangulaire': 'Revêtement modulable pour les voiries, les parkings, les cours et les allées.',
+  'dalles-beton-gazon': 'Stationnements et accès végétalisés : l’herbe pousse dans les alvéoles et l’eau de pluie s’infiltre.',
+  'pave-hexagonal': 'Revêtement des places, des cours et des allées, posé en motif de nid d’abeille.',
+  'pave-trief': 'Revêtement des voiries, des cours et des aires de stationnement.',
+  'pave-trief-quartz': 'Variante d’aspect du pavé Trief pour les espaces piétons et les abords de bâtiments.',
+  'pave-en-beton': 'Revêtement courant des voiries, des trottoirs et des cours.',
+  'revetement-de-sol': 'Revêtement extérieur des sols piétons et des terrasses.',
+  'separateurs-de-chaussee': 'Séparent les voies de circulation et canalisent le trafic sur les axes routiers.',
+  'bornes-obus': 'Empêchent le stationnement sauvage et protègent les trottoirs et les accès piétons.',
+  'agglos-15-creux-plein': 'Élévation des murs de bâtiments et des clôtures.',
+  'mur-de-soutenement': 'Retient les terres des talus, des remblais et des terrains en pente.',
+  'mur-anti-bruit': 'Atténue le bruit de la circulation le long des voies et autour des zones habitées.',
+  'panneaux-muraux': 'Montage de murs et de clôtures par éléments préfabriqués.',
+  claustras: 'Murs ajourés qui laissent passer l’air et la lumière.',
+  'claustras-lame-z': 'Claustras à lames pour ventiler et ombrager les façades.',
+  'atalus-18-50-120': 'Aménagement et maintien des talus.',
+  'plancher-alveolaire-precontraint': 'Planchers de bâtiments en éléments préfabriqués précontraints, posés sur les murs ou les poutres.',
+  'hourdis-et-nervures': 'Planchers de bâtiments : les nervures portent, les hourdis comblent l’espace entre elles avant le coulage de la dalle.',
+  'plancher-alphilaire': 'Système de plancher préfabriqué pour le bâtiment.',
+  'ecaille-de-pont': 'Parement des murs de remblai renforcé, aux culées des ponts et le long des routes.',
+  'marches-descalier': 'Escaliers intérieurs et extérieurs montés en éléments préfabriqués.',
+  'dalot-cadre-ferme': 'Ouvrage de franchissement sous chaussée qui laisse passer les eaux de ruissellement et les petits cours d’eau.',
+  caniveaux: 'Évacuation des eaux pluviales le long des voiries et des bâtiments.',
+  'tuyaux-vibres-armes': 'Réseaux d’assainissement, évacuation des eaux pluviales et buses sous chaussée.',
+  'tuyaux-rocla': 'Conduites d’assainissement et de drainage.',
+  'chambre-de-tirage': 'Regards enterrés qui donnent accès aux réseaux de câbles pour le tirage et l’entretien.',
+  'poteaux-electriques': 'Supports des lignes de distribution électrique.',
+  'traverse-bibloc-type-slad': 'Supports des rails sur les voies ferrées.',
+  tetrapodes: 'Protection des digues et du littoral contre l’action des vagues.',
+};
+export const familyUse = {
+  'voirie-pavage': 'Routes, rues, places et espaces piétons.',
+  'maconnerie-murs': 'Murs de bâtiments, clôtures, talus et protections.',
+  'structure-planchers': 'Planchers, escaliers et ouvrages d’art.',
+  'hydraulique-assainissement': 'Évacuation des eaux et réseaux enterrés.',
+  'energie-rail': 'Lignes électriques, voies ferrées et ouvrages côtiers.',
+  'beton-sec': 'Béton prêt à gâcher pour les chantiers.',
+};
