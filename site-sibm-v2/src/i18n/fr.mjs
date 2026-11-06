@@ -127,6 +127,8 @@ export default {
     sheetSubmit: 'Envoyer la demande de fiche',
     usage: 'Usages',
     noRefs: 'Ouvrages de référence',
+    refsTodo: 'Ouvrages où ce produit a été livré, à confirmer par SIBM',
+    dryMarketing: 'Texte marketing à valider par SIBM',
     description_: 'Description',
     descriptionFamily: (fam, name) =>
       `${name} : produit préfabriqué en béton de la famille « ${fam} », fabriqué par SIBM.`,

@@ -47,7 +47,7 @@ function photo(name, { ratio = '4/3', alt = '', eager = false, sizes = '(min-wid
   const found = ['avif', 'webp', 'jpg'].filter((e) => fs.existsSync(`${base}.${e}`));
   if (!found.length) {
     photoSlots.set(`/assets/photos/${name}.webp`, ctx);
-    return `<div class="photo slot" style="--r:${ratio}" role="img" aria-label="${esc(alt || 'Photographie à fournir')}" data-photo="/assets/photos/${esc(name)}.webp"><span><b>Photo à fournir</b><br>${esc(name)}.webp</span></div>`;
+    return `<div class="photo slot" style="--r:${ratio}" role="img" aria-label="${esc(alt || 'Photographie à fournir')}" data-photo="/assets/photos/${esc(name)}.webp"><span><b>[À FOURNIR] Photo</b><br>${esc(name)}.webp</span></div>`;
   }
   let w = 1600, h = 900;
   const [rw, rh] = ratio.split('/').map(Number);
@@ -228,8 +228,9 @@ const secHead = (kicker, h2, lead) =>
 
 const familyCard = (L, U, f) => {
   const names = f.special ? L.home.featuredLead : f.products.slice(0, 3).map((x) => x.name).join(', ');
-  return `<a class="card" href="${U('/produits/' + f.slug)}">
-    ${photo('familles/' + f.slug, { ratio: '4/3', ctx: 'Famille : ' + f.name, alt: f.name })}
+  const hasPhoto = ['avif', 'webp', 'jpg'].some((e) => fs.existsSync(path.join(SRC, 'assets', 'photos', 'familles', `${f.slug}.${e}`)));
+  return `<a class="card tilt" href="${U('/produits/' + f.slug)}"><span class="tilt__in">
+    ${hasPhoto ? photo('familles/' + f.slug, { ratio: '4/3', ctx: 'Famille : ' + f.name, alt: f.name }) : `<div class="bp-frame">${V.blueprints[f.slug]}</div>`}</span>
     <h3 class="card__title">${esc(f.name)}</h3>
     <p class="card__list">${esc(names)}</p>
     <span class="card__meta">${f.special ? L.home.featuredCta : L.products.count(f.products.length)}</span>
@@ -247,6 +248,154 @@ const agencyBlock = (L, a, h = 'h3') => `<li id="${a.id}" class="rows--item"><di
     <div class="r"><p>${a.lines.map(esc).join('<br>')}</p><p style="margin-top:12px">${phoneLinks(a)}</p>
     <p style="margin-top:12px"><a class="link" href="${osm(a)}" rel="noopener" target="_blank">${L.directions}</a></p></div>
   </div></li>`;
+
+
+// ------------------------------------------------------------------ accueil
+const famBlueprint = (f) => `<div class="bp-frame">${V.blueprints[f.slug]}</div>`;
+
+function homeBody(L, U) {
+  filler('Composition architecturale vectorielle du hero (trames, éléments préfabriqués)', 'Accueil, hero', 'Vidéo src/assets/video/hero.mp4 (muette, en boucle) ou photo réelle src/assets/photos/accueil/hero.webp');
+  const heroVideo = fs.existsSync(path.join(SRC, 'assets', 'video', 'hero.mp4'));
+  const heroPhoto = ['avif', 'webp', 'jpg'].find((e) => fs.existsSync(path.join(SRC, 'assets', 'photos', 'accueil', `hero.${e}`)));
+  const media = heroVideo
+    ? `<div class="hero__media" aria-hidden="true"><video muted loop playsinline preload="none" data-src="/assets/video/hero.mp4" poster="${heroPhoto ? `/assets/photos/accueil/hero.${heroPhoto}` : ''}"></video></div>`
+    : heroPhoto
+      ? `<div class="hero__media" aria-hidden="true" data-parallax><img class="hero__poster" src="/assets/photos/accueil/hero.${heroPhoto}" alt="" fetchpriority="high"></div>`
+      : `<div class="hero__comp" data-parallax>${V.heroComposition}</div>`;
+
+  const figures = L.home.figures
+    .map((f) => `<div class="fig"><dt${f.count ? ' data-m-count' : ''}>${esc(f.v)}</dt><dd>${esc(f.l)}</dd></div>`)
+    .join('');
+
+  const fams = D.families
+    .map((f, i) => {
+      const list = f.special ? [L.home.featuredLead] : f.products.slice(0, 6).map((x) => x.name);
+      const more = !f.special && f.products.length > 6 ? `<li>+ ${f.products.length - 6}</li>` : '';
+      return `<a class="card fam" href="${U('/produits/' + f.slug)}">
+        ${famBlueprint(f)}
+        <ul class="fam__list" aria-hidden="true">${list.map((x) => `<li>${esc(x)}</li>`).join('')}${more}</ul>
+        <div class="fam__body"><span class="fam__n">${String(i + 1).padStart(2, '0')}</span><h3 class="fam__name">${esc(f.name)}</h3><p class="fam__use" data-filler="true">${esc(D.familyUse[f.slug])}</p><span class="card__meta">${f.special ? L.home.featuredCta : L.products.count(f.products.length)}</span></div>
+      </a>`;
+    })
+    .join('');
+  filler('Plans techniques vectoriels par famille (sans cote chiffrée)', 'Accueil, familles ; index et pages familles', 'Photographies réelles des produits, src/assets/photos/familles/<famille>.webp');
+  filler('Phrases d’usage par famille (data-filler)', 'Accueil, cartes familles', 'Texte validé par SIBM');
+
+  const storyRefs = [
+    ['pont-henri-konan-bedie', 'bridge'],
+    ['basilique-notre-dame-de-la-paix', 'basilica'],
+    ['stade-felix-houphouet-boigny', 'stadium'],
+    ['tours-administratives-abidjan-plateau', 'towers'],
+  ];
+  const story = storyRefs
+    .map(([slug, art], i) => {
+      const r = D.references.find((x) => x.slug === slug);
+      const ph = ['avif', 'webp', 'jpg'].find((e) => fs.existsSync(path.join(SRC, 'assets', 'photos', 'references', `${slug}.${e}`)));
+      if (!ph) filler(`Tracé vectoriel de l’ouvrage : ${r.name}`, 'Accueil, références', `Photo de chantier ou de l’ouvrage, src/assets/photos/references/${slug}.webp (droits à vérifier)`);
+      return `<article class="story__panel" id="story-${slug}">
+        <div class="story__art" aria-hidden="true">${ph ? `<div class="photo"><img src="/assets/photos/references/${slug}.${ph}" alt="" loading="lazy"></div>` : V.landmarks[art]}</div>
+        <div class="wrap"><div class="story__text">
+          <p class="story__n">${String(i + 1).padStart(2, '0')} / ${String(storyRefs.length).padStart(2, '0')}</p>
+          <h3 class="t-h2">${esc(r.name)}</h3>
+          <p class="story__place">${esc(r.place)}</p>
+          <div class="story__tags"><p class="t-label muted" style="margin-bottom:10px">${L.references.supplied}</p>${r.labels.map((x, k) => `<span class="tag" style="--i:${k}">${esc(x)}</span>`).join('')}</div>
+          <p style="margin-top:24px"><a class="link" href="${U('/references#' + r.slug)}">${L.home.refsCta}</a></p>
+        </div></div>
+      </article>`;
+    })
+    .join('');
+
+  // carte des sites
+  const mapSites = Object.fromEntries(
+    D.agencies.map((a) => [a.id, { name: a.name, role: a.role, lines: a.lines, phones: a.phones.map((x) => ({ tel: D.tel(x), label: D.phone(x) })), quote: U('/devis') + '?site=' + encodeURIComponent(a.name), map: osm(a) }])
+  );
+  filler('Contour schématique de la Côte d’Ivoire (tracé simplifié)', 'Accueil, carte des sites', 'Contour officiel (SVG IGN / CNTIG) si une précision cartographique est souhaitée');
+  const pins = D.agencies
+    .map((a, i) => {
+      const [x, y] = V.project(V.sitePos[a.id]);
+      const right = a.id === 'san-pedro' || a.id === 'korhogo' ? false : true;
+      return `<g class="pin" data-site="${a.id}" role="button" tabindex="0" aria-pressed="${i === 0}" aria-label="${esc(a.name)} : ${esc(a.role)}" style="--i:${i}">
+        <circle class="halo" cx="${x}" cy="${y}" r="10"/><circle class="c" cx="${x}" cy="${y}" r="8"/>
+        <text x="${right ? x + 14 : x - 14}" y="${y + 5}" text-anchor="${right ? 'start' : 'end'}">${esc(a.name)}</text></g>`;
+    })
+    .join('');
+  const a0 = D.agencies[0];
+  const mapBlock = `<div class="map">
+    <svg class="map__svg" viewBox="${V.mapViewBox}" role="group" aria-label="${esc(L.home.mapTitle)}" data-filler="true">
+      <path class="map__grid" d="${Array.from({ length: 8 }, (_, i) => `M${i * 60 + 10} 0V400`).join('')}${Array.from({ length: 7 }, (_, i) => `M0 ${i * 60 + 10}H380`).join('')}"/>
+      <path class="map__land" d="${V.mapOutline}"/>
+      ${pins}
+    </svg>
+    <div class="card m-nolift agency-card" id="agency-card" tabindex="-1" aria-live="polite">
+      <p class="role" data-k="role">${esc(a0.role)}</p>
+      <h3 data-k="name">${esc(a0.name)}</h3>
+      <p data-k="lines">${a0.lines.map(esc).join('<br>')}</p>
+      <p data-k="phones">${phoneLinks(a0)}</p>
+      <p><a class="link" data-k="map" href="${osm(a0)}" rel="noopener" target="_blank">${L.directions}</a></p>
+      <div class="btn-row"><a class="btn btn--secondary" data-k="quote" href="${U('/devis')}?site=${encodeURIComponent(a0.name)}">${L.home.mapQuote}</a></div>
+    </div>
+  </div>
+  <script type="application/json" id="map-data">${JSON.stringify(mapSites)}</script>`;
+
+  const clientsList = (hidden) => `<ul class="clients"${hidden ? ' aria-hidden="true"' : ''}>${D.clients.map((c) => `<li class="client">${logo(c, hidden)}</li>`).join('')}</ul>`;
+
+  return `
+<section class="hero" aria-labelledby="hero-title">
+  ${media}
+  <div class="grain" aria-hidden="true"></div>
+  <div class="wrap hero__text">
+    <p class="hero__kicker eyebrow">${esc(L.home.iso)}</p>
+    <h1 class="t-h1" id="hero-title" aria-label="${esc(L.home.h1)}">${L.home.h1Lines.map((l, i) => `<span class="ln" aria-hidden="true"><span style="--i:${i}">${l}</span></span>`).join('')}</h1>
+    <p class="t-lead">${esc(L.home.lead)}</p>
+    <div class="btn-row">${btn(U('/devis'), L.mainAction)}${btn(U('/produits'), L.home.ctaProducts, 'secondary')}</div>
+    <a class="scroll-cue" href="#familles"><i aria-hidden="true"></i>${L.home.scroll}</a>
+  </div>
+  <div class="wrap hero__foot">
+    <h2 class="sr">${L.home.figuresTitle}</h2>
+    <dl class="figures figures--dock">${figures}</dl>
+  </div>
+</section>
+
+<section class="hscroll" id="familles" aria-labelledby="fam-title"><div class="hscroll__pin">
+  <div class="wrap">${secHead('01', L.home.familiesTitle, L.home.familiesLead).replace('<h2 class="t-h2"', '<h2 class="t-h2" id="fam-title"')}</div>
+  <div class="hscroll__track">${fams}</div>
+  <div class="wrap"><div class="hscroll__progress" aria-hidden="true"><i></i></div></div>
+</div></section>
+
+<section class="sec sec--screens" style="--h:1"><div class="wrap">
+  <div class="split">
+    <div class="l">
+      <p class="eyebrow">02</p>
+      <h2 class="t-h2">${L.home.featuredTitle}</h2>
+      <p class="t-lead" style="margin-top:24px">${esc(L.home.featuredLead)}</p>
+      <div class="btn-row" style="margin-top:32px">${btn(U('/produits/beton-sec'), L.home.featuredCta, 'secondary')}</div>
+    </div>
+    <div class="r reveal-mask">${photo('beton-sec/accueil', { ratio: '3/2', alt: 'Béton sec SIBM', ctx: 'Béton sec SIBM (accueil)' })}</div>
+  </div>
+</div></section>
+
+<section class="story" aria-labelledby="story-title">
+  <div class="wrap" style="padding-top:var(--s-9)">${secHead('03', L.home.storyTitle, L.home.refsLead).replace('<h2 class="t-h2"', '<h2 class="t-h2" id="story-title"')}</div>
+  ${story}
+</section>
+
+<section class="sec sec--screens" style="--h:2" aria-labelledby="map-title"><div class="wrap">
+  ${secHead('04', L.home.mapTitle, L.home.mapLead).replace('<h2 class="t-h2"', '<h2 class="t-h2" id="map-title"')}
+  ${mapBlock}
+  <div class="clients-block">
+  <h2 class="t-h3" id="clients-title" style="margin-bottom:24px">${L.home.clientsTitle}</h2>
+  <div class="marquee" id="clients-marquee"><div class="marquee__track">${clientsList(false)}${clientsList(true)}</div></div>
+  <button class="marquee__pause" type="button" data-marquee-pause aria-controls="clients-marquee" aria-pressed="false" data-pause="${L.home.marqueePause}" data-play="${L.home.marqueePlay}">${L.home.marqueePause}</button>
+</div>
+
+</div></section>
+
+<section class="sec sec--screens" style="--h:1" aria-labelledby="news-title"><div class="wrap">
+  ${secHead('05', L.home.newsTitle).replace('<h2 class="t-h2"', '<h2 class="t-h2" id="news-title"')}
+  <div class="cards cards--3">${D.news.slice(0, 3).map((n) => newsCard(L, U, n)).join('')}</div>
+  <div class="btn-row" style="margin-top:48px">${btn(U('/actualites'), L.home.newsCta, 'secondary')}</div>
+</div></section>`;
+}
 
 // ------------------------------------------------------------------ formulaires
 const field = ({ id, name, label, type = 'text', required = false, autocomplete = '', attrs = '', req1 = false }) =>
@@ -282,11 +431,34 @@ function quoteForm(L) {
     ${select({ id: 'q-project', name: 'projet', label: f.project, first: f.choose, options: f.projects.map((x) => [x, x]) })}
   </div>
   ${field({ id: 'q-city', name: 'ville', label: f.city, required: true, autocomplete: 'address-level2' })}
+  <input type="hidden" name="site" id="q-site">
   <div id="produit-box" hidden>${field({ id: 'q-product', name: 'produit', label: L.quote.product, attrs: 'readonly' })}</div>
   ${area({ id: 'q-desc', name: 'description', label: f.description })}
   <div class="field"><label for="q-file">${f.attachment}</label><input id="q-file" name="piece_jointe" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"><div class="err" role="alert"></div></div>
   ${formEnd(L, L.quote.submit)}
 </form>`;
+}
+
+function sheetForm(L, productName) {
+  const f = L.form;
+  return `<section class="sec sec--tight" aria-labelledby="sheet-title"><div class="wrap">
+  <div class="sheet-form" id="fiche-technique">
+    <h2 class="t-h2" id="sheet-title">${L.products.sheetTitle}</h2>
+    <p class="t-lead" style="margin:16px 0 32px">${L.products.sheetLead}</p>
+    <form class="form" data-form="fiche-technique" novalidate>
+      <div class="row row--2">
+        ${field({ id: 's-name', name: 'nom', label: f.fullName, required: true, autocomplete: 'name' })}
+        ${field({ id: 's-company', name: 'societe', label: f.company, required: true, autocomplete: 'organization' })}
+      </div>
+      <div class="row row--2">
+        ${field({ id: 's-email', name: 'email', label: f.email, type: 'email', required: true, autocomplete: 'email' })}
+        ${field({ id: 's-phone', name: 'telephone', label: f.phone, type: 'tel', required: true, autocomplete: 'tel' })}
+      </div>
+      ${field({ id: 's-product', name: 'produit', label: f.product, attrs: `readonly value="${esc(productName)}"` })}
+      ${formEnd(L, L.products.sheetSubmit)}
+    </form>
+  </div>
+</div></section>`;
 }
 
 function complaintForm(L) {
@@ -354,6 +526,8 @@ function buildLang(lang, L) {
         alternateName: ['SIBM', 'SABM'],
         url: SITE_URL + '/',
         foundingDate: String(D.company.founded),
+        logo: { '@type': 'ImageObject', url: SITE_URL + '/assets/brand/sibm-logo.png', width: 600, height: 564 },
+        image: SITE_URL + '/assets/og-default.png',
         email: D.company.email,
         areaServed: { '@type': 'Country', name: 'Côte d’Ivoire' },
         address: { '@type': 'PostalAddress', streetAddress: 'Zone 4A', addressLocality: 'Abidjan', addressCountry: 'CI' },
@@ -380,77 +554,7 @@ function buildLang(lang, L) {
     title: L.home.title,
     description: L.home.description,
     jsonld: orgLd,
-    body: `
-<section class="hero"><div class="wrap">
-  <div class="hero__head">
-    <div class="h">
-      <p class="hero__kicker t-label">${L.home.kicker}</p>
-      <h1 class="t-h1">${esc(L.home.h1)}</h1>
-    </div>
-    <div class="a">
-      <p class="t-lead">${esc(L.home.lead)}</p>
-      <div class="btn-row">${btn(U('/devis'), L.mainAction)}${btn(U('/produits'), L.home.ctaProducts, 'secondary')}</div>
-    </div>
-  </div>
-  <div class="hero__stage">${photo('accueil/hero', { ratio: '16/7', eager: true, sizes: '100vw', alt: 'Usine SIBM, produits en béton préfabriqué', ctx: 'Hero accueil : usine ou parc produits' })}</div>
-</div></section>
-
-<section class="sec sec--tight"><div class="wrap">
-  <h2 class="sr">${L.home.figuresTitle}</h2>
-  <dl class="figures">${L.home.figures.map((f) => `<div class="fig"><dt>${esc(f.v)}</dt><dd>${esc(f.l)}</dd></div>`).join('')}</dl>
-</div></section>
-
-<section class="sec"><div class="wrap">
-  ${secHead('01', L.home.familiesTitle, L.home.familiesLead)}
-  <div class="cards cards--3">${D.families.map((f) => familyCard(L, U, f)).join('')}</div>
-  <p style="margin-top:48px">${btn(U('/produits'), L.home.familyAll, 'secondary')}</p>
-</div></section>
-
-<section class="sec"><div class="wrap">
-  <div class="split">
-    <div class="l">
-      <p class="eyebrow t-label">02</p>
-      <h2 class="t-h2">${L.home.featuredTitle}</h2>
-      <p class="t-lead" style="margin-top:24px">${esc(L.home.featuredLead)}</p>
-      <p style="margin-top:32px">${btn(U('/produits/beton-sec'), L.home.featuredCta)}</p>
-    </div>
-    <div class="r">${photo('beton-sec/accueil', { ratio: '4/3', alt: 'Béton sec SIBM', ctx: 'Béton sec SIBM (accueil)' })}</div>
-  </div>
-</div></section>
-
-<section class="sec"><div class="wrap">
-  ${secHead('03', L.home.refsTitle, L.home.refsLead)}
-  <div class="cards cards--4">${featured
-    .map(
-      (r) => `<a class="card" href="${U('/references#' + r.slug)}">${photo('references/' + r.slug, { ratio: '4/5', alt: r.name, ctx: 'Référence : ' + r.name })}<h3 class="card__title">${esc(r.name)}</h3><p class="card__list">${esc(r.place)}</p></a>`
-    )
-    .join('')}</div>
-  <p style="margin-top:48px">${btn(U('/references'), L.home.refsCta, 'secondary')}</p>
-</div></section>
-
-<section class="sec sec--tight"><div class="wrap">
-  <h2 class="t-h3" style="margin-bottom:32px">${L.home.clientsTitle}</h2>
-  <ul class="clients">${D.clients.map((c) => `<li>${logo(c)}</li>`).join('')}</ul>
-</div></section>
-
-<section class="sec"><div class="wrap">
-  ${secHead('04', L.home.newsTitle)}
-  <div class="cards cards--3">${D.news.slice(0, 3).map((n) => newsCard(L, U, n)).join('')}</div>
-  <p style="margin-top:48px">${btn(U('/actualites'), L.home.newsCta, 'secondary')}</p>
-</div></section>
-
-<section class="sec sec--tight"><div class="wrap">
-  <div class="quote-strip">
-    <div class="l"><h2 class="t-h2" style="max-width:18ch">${L.home.quoteTitle}</h2><p class="t-lead" style="margin-top:20px">${esc(L.home.quoteLead)}</p></div>
-    <div class="r">${btn(U('/devis'), L.mainAction)}</div>
-  </div>
-</div></section>
-
-<section class="sec"><div class="wrap">
-  ${secHead('05', L.home.sitesTitle, L.home.sitesLead)}
-  <ul class="rows">${D.agencies.map((a) => agencyBlock(L, a)).join('')}</ul>
-  <p style="margin-top:48px">${btn(U('/contact'), L.home.sitesCta, 'secondary')}</p>
-</div></section>`,
+    body: homeBody(L, U),
   });
 
   // ---------- Présentation
@@ -507,23 +611,28 @@ ${leaders}`,
   // ---------- Produits : familles et fiches
   for (const f of D.families) {
     if (f.special) {
+      // Addendum : « Caractéristiques » et « Avantages » restent en texte marketing, signalés [À FOURNIR].
       const block = (title, n) => `<section class="sec sec--tight"><div class="wrap"><div class="split"><div class="l"><h2 class="t-h2">${title}</h2></div><div class="r">
-        <ul class="rows">${Array.from({ length: n }, () => `<li>${todo(L)}</li>`).join('')}</ul></div></div></div></section>`;
+        <ul class="rows">${Array.from({ length: n }, () => `<li>${todo(L)} <span class="muted t-small">${L.products.dryMarketing}</span></li>`).join('')}</ul></div></div></div></section>`;
       add(lang, L, {
         url: '/produits/' + f.slug,
         nav: 'produits',
         title: 'Béton sec SIBM : caractéristiques et avantages',
-        description: 'Le Béton sec SIBM, lancé le 1er décembre 2022. Caractéristiques, avantages et demande de devis.',
+        description: 'Le Béton sec SIBM, lancé le 1er décembre 2022. Caractéristiques, avantages, fiche technique et demande de devis.',
+        jsonld: { '@context': 'https://schema.org', '@type': 'Product', name: 'Béton sec SIBM', category: 'Béton sec', brand: { '@type': 'Brand', name: 'SIBM' }, manufacturer: { '@id': SITE_URL + '/#organization' } },
         body: `${pageHead(L, U, [['/produits', L.nav.products], [null, f.name]], L.products.dryTitle, L.products.dryLead)}
 <section class="sec" style="padding-top:0"><div class="wrap"><div class="product">
-  <div class="l">${photo('beton-sec/produit', { ratio: '4/3', eager: true, sizes: '(min-width:900px) 60vw, 100vw', alt: 'Béton sec SIBM', ctx: 'Béton sec SIBM : produit' })}</div>
+  <div class="l reveal-mask">${photo('beton-sec/produit', { ratio: '4/3', eager: true, sizes: '(min-width:900px) 60vw, 100vw', alt: 'Béton sec SIBM', ctx: 'Béton sec SIBM : produit' })}</div>
   <div class="r"><div class="aside-box"><p class="t-label muted">${L.products.family}</p><p class="t-h3">${f.name}</p>
-    ${btn(U('/devis') + '?famille=' + f.slug + '&nom=' + encodeURIComponent(f.name), L.products.quoteProduct)}
-    <p class="t-small">${L.products.datasheetTodo}</p></div></div>
+    <p class="usage" data-filler="true">${esc(D.familyUse[f.slug])}</p>
+    ${btn('#fiche-technique', L.products.sheetAsk, 'primary', true, ' data-open-sheet')}
+    ${btn(U('/devis') + '?famille=' + f.slug + '&nom=' + encodeURIComponent(f.name), L.products.quoteProduct, 'secondary')}</div></div>
 </div></div></section>
 ${block(L.products.dryFeatures, 4)}
-${block(L.products.dryAdvantages, 4)}`,
+${block(L.products.dryAdvantages, 4)}
+${sheetForm(L, f.name)}`,
       });
+      filler('Phrase d’usage du Béton sec (data-filler)', '/produits/beton-sec', 'Texte marketing validé par SIBM');
       continue;
     }
 
@@ -543,13 +652,11 @@ ${block(L.products.dryAdvantages, 4)}`,
     for (const p of f.products) {
       const usedOn = D.references.filter((r) => r.products.some((x) => x.slug === p.slug));
       const sibling = f.products.filter((x) => x.slug !== p.slug).slice(0, 3);
-      const pdf = fs.existsSync(path.join(SRC, 'assets', 'docs', `${p.slug}.pdf`));
-      todoFlags.add(`Fiche technique PDF : ${p.name} (src/assets/docs/${p.slug}.pdf)`);
       add(lang, L, {
         url: `/produits/${f.slug}/${p.slug}`,
         nav: 'produits',
         title: `${p.name} : ${f.name} | SIBM`,
-        description: `${p.name}, produit en béton préfabriqué SIBM (${f.name}). Fiche technique, dimensions et demande de devis.`,
+        description: `${p.name}, produit en béton préfabriqué SIBM (${f.name}) : usages, ouvrages de référence, fiche technique sur demande.`,
         jsonld: {
           '@context': 'https://schema.org',
           '@type': 'Product',
@@ -558,48 +665,35 @@ ${block(L.products.dryAdvantages, 4)}`,
           brand: { '@type': 'Brand', name: 'SIBM' },
           manufacturer: { '@id': SITE_URL + '/#organization' },
         },
+        // Addendum : nom, famille, photo, usage, ouvrages de référence, bouton fiche technique. Aucune donnée technique.
         body: `${pageHead(L, U, [['/produits', L.nav.products], [`/produits/${f.slug}`, f.name], [null, p.name]], p.name, null)}
 <section class="sec" style="padding-top:0"><div class="wrap">
   <div class="product">
-    <div class="l">${photo(`produits/${p.slug}`, { ratio: '4/3', eager: true, sizes: '(min-width:900px) 60vw, 100vw', alt: p.name, ctx: `Produit : ${p.name}` })}</div>
+    <div class="l reveal-mask">${photo(`produits/${p.slug}`, { ratio: '4/3', eager: true, sizes: '(min-width:900px) 60vw, 100vw', alt: p.name, ctx: `Produit : ${p.name}` })}</div>
     <div class="r"><div class="aside-box">
-      <p class="t-label muted">${L.products.family}</p><p class="t-h3">${esc(f.name)}</p>
-      ${btn(U('/devis') + `?famille=${f.slug}&nom=${encodeURIComponent(p.name)}`, L.products.quoteProduct)}
-      ${pdf ? `<a class="link" href="/assets/docs/${p.slug}.pdf" download>${L.products.datasheet}</a>` : `<p class="t-small">${L.products.datasheetTodo}</p>`}
+      <p class="t-label muted">${L.products.family}</p><p class="t-h3"><a class="link" href="${U('/produits/' + f.slug)}">${esc(f.name)}</a></p>
+      <p class="usage" data-filler="true">${esc(D.usage[p.slug])}</p>
+      ${btn('#fiche-technique', L.products.sheetAsk, 'primary', true, ' data-open-sheet')}
+      ${btn(U('/devis') + `?famille=${f.slug}&nom=${encodeURIComponent(p.name)}`, L.products.quoteProduct, 'secondary')}
     </div></div>
   </div>
 </div></section>
-<section class="sec sec--tight"><div class="wrap prose">
-  <div class="split"><div class="l"><h2 class="t-h2">${L.products.description_}</h2></div>
-  <div class="r"><p class="t-lead">${esc(L.products.descriptionFamily(f.name, p.name))}</p><p>${todo(L)} ${L.products.descriptionTodo}</p></div></div>
-</div></section>
 <section class="sec sec--tight"><div class="wrap">
-  <div class="split"><div class="l"><h2 class="t-h2">${L.products.dimensions}</h2></div>
-  <div class="r"><table class="spec"><tbody>
-    <tr><th scope="row">${L.products.dimensionRows[0]}</th><td>${esc(p.name)}</td></tr>
-    ${L.products.dimensionRows.slice(1).map((r) => `<tr><th scope="row">${r}</th><td>${todo(L)}</td></tr>`).join('')}
-  </tbody></table></div></div>
+  <div class="split"><div class="l"><h2 class="t-h2">${usedOn.length ? L.products.usedOn : L.products.noRefs}</h2></div>
+  <div class="r">${usedOn.length ? `<ul class="rows rows--tight ref-links">${usedOn.map((r) => `<li><a class="link" href="${U('/references#' + r.slug)}">${esc(r.name)}</a><span class="muted t-small">${esc(r.place)}</span></li>`).join('')}</ul>` : `<p>${todo(L)} <span class="muted t-small">${L.products.refsTodo}</span></p>`}</div></div>
 </div></section>
-<section class="sec sec--tight"><div class="wrap">
-  <div class="split"><div class="l"><h2 class="t-h2">${L.products.standards}</h2></div><div class="r"><p>${todo(L)}</p></div></div>
-</div></section>
-<section class="sec sec--tight"><div class="wrap">
-  <div class="split"><div class="l"><h2 class="t-h2">${L.products.applications}</h2></div><div class="r"><p>${esc(L.products.applicationsFamily(f.name))}</p></div></div>
-</div></section>
-<section class="sec sec--tight"><div class="wrap">
-  <div class="split"><div class="l"><h2 class="t-h2">${L.products.weight}</h2></div>
-  <div class="r"><table class="spec"><tbody>${L.products.weightRows.map((r) => `<tr><th scope="row">${r}</th><td>${todo(L)}</td></tr>`).join('')}</tbody></table></div></div>
-</div></section>
-${usedOn.length ? `<section class="sec sec--tight"><div class="wrap"><div class="split"><div class="l"><h2 class="t-h2">${L.products.usedOn}</h2></div><div class="r"><ul class="rows rows--tight">${usedOn.map((r) => `<li><a class="link" href="${U('/references#' + r.slug)}">${esc(r.name)}</a></li>`).join('')}</ul></div></div></div></section>` : ''}
+${sheetForm(L, p.name)}
 <section class="sec"><div class="wrap">
   <h2 class="t-h3" style="margin-bottom:32px">${L.products.sameFamily}</h2>
   <div class="cards cards--3">${sibling
-    .map((s) => `<a class="card" href="${U(`/produits/${f.slug}/${s.slug}`)}">${photo(`produits/${s.slug}`, { ratio: '4/3', alt: s.name, ctx: `Produit : ${s.name}` })}<h3 class="card__title">${esc(s.name)}</h3></a>`)
+    .map((s) => `<a class="card" href="${U(`/produits/${f.slug}/${s.slug}`)}">${photo(`produits/${s.slug}`, { ratio: '4/3', alt: s.name, ctx: `Produit : ${s.name}` })}<h3 class="card__title">${esc(s.name)}</h3><p class="card__list" data-filler="true">${esc(D.usage[s.slug])}</p></a>`)
     .join('')}</div>
 </div></section>`,
       });
+      if (!usedOn.length) todoFlags.add(`Ouvrages de référence où « ${p.name} » a été livré`);
     }
   }
+  filler('Phrases d’usage par produit (31 fiches, data-filler)', 'Pages produit, cartes « même famille »', 'Texte d’usage validé par SIBM, sans donnée technique');
 
   // ---------- Services
   const servicePage = (slug, key, svcKey, withPoints, extra = '') => {
@@ -639,13 +733,10 @@ ${usedOn.length ? `<section class="sec sec--tight"><div class="wrap"><div class=
         </div></div></li>`
       )
       .join('')}</ul></div></section>
-<section class="sec"><div class="wrap">
-  ${secHead('02', L.references.feedbackTitle)}
-  <ul class="rows">${D.testimonials
-    .map((t) => `<li><div class="split" style="gap:8px"><div class="l"><p class="t-h3">${esc(t.client)}</p></div><div class="r"><p class="t-lead">${esc(t.text)}</p>${t.product ? `<p style="margin-top:8px"><a class="link" href="${U(`/produits/${t.product.fam}/${t.product.slug}`)}">${esc(t.product.name)}</a></p>` : ''}</div></div></li>`)
-    .join('')}</ul>
+<section class="sec sec--tight"><div class="wrap">
+  <div class="split"><div class="l"><h2 class="t-h2">${L.references.feedbackTitle}</h2></div><div class="r"><p>${todo(L)} <span class="muted t-small">${L.references.feedbackTodo}</span></p></div></div>
 </div></section>
-<section class="sec sec--tight"><div class="wrap"><h2 class="t-h3" style="margin-bottom:32px">${L.references.clientsTitle}</h2><ul class="clients">${D.clients.map((c) => `<li>${logo(c)}</li>`).join('')}</ul></div></section>`,
+<section class="sec sec--tight"><div class="wrap"><h2 class="t-h3" style="margin-bottom:32px">${L.references.clientsTitle}</h2><ul class="clients">${D.clients.map((c) => `<li class="client">${logo(c)}</li>`).join('')}</ul></div></section>`,
   });
 
   // ---------- Actualités
@@ -784,15 +875,43 @@ ${L.qse.sections
   });
 }
 
-// Logo client : fichier /assets/logos/<slug>.svg|png|webp si présent, sinon nom en texte.
-function logo(name) {
+// Logo client (addendum) : fichier /assets/logos/<slug>.svg|png|webp|jpg si présent, sinon le nom en texte.
+// Niveaux de gris + opacité .6, couleur au survol/focus (300 ms) et à l'entrée dans l'écran sur tactile (fx.js).
+// mix-blend-mode: multiply retire le fond blanc des JPG. Le logo SIBM n'est jamais filtré.
+const logoInfo = new Map();
+function logo(name, decorative = false) {
   const s = D.slugify(name);
-  for (const e of ['svg', 'webp', 'png']) {
-    if (fs.existsSync(path.join(SRC, 'assets', 'logos', `${s}.${e}`)))
-      return `<img src="/assets/logos/${s}.${e}" alt="${esc(name)}" height="40" loading="lazy">`;
+  for (const e of ['svg', 'png', 'webp', 'jpg']) {
+    const f = path.join(SRC, 'assets', 'logos', `${s}.${e}`);
+    if (fs.existsSync(f)) {
+      if (e !== 'svg') {
+        const w = imgWidth(f);
+        logoInfo.set(name, { file: `${s}.${e}`, width: w });
+      }
+      return `<img src="/assets/logos/${s}.${e}" alt="${decorative ? '' : esc(name)}" height="40" loading="lazy">`;
+    }
   }
-  todoFlags.add(`Logo client : ${name} (src/assets/logos/${s}.svg)`);
-  return esc(name);
+  todoFlags.add(`Logo client autorisé : ${name} (src/assets/logos/${s}.svg ou .png)`);
+  logoInfo.set(name, { file: null });
+  return `<span class="client__name">${esc(name)}</span>`;
+}
+// largeur d'un PNG/JPG/WebP lue dans l'en-tête (sans dépendance)
+function imgWidth(f) {
+  const b = fs.readFileSync(f);
+  if (b.readUInt32BE(0) === 0x89504e47) return b.readUInt32BE(16);
+  if (b.toString('ascii', 8, 12) === 'WEBP') {
+    const t = b.toString('ascii', 12, 16);
+    if (t === 'VP8X') return 1 + b.readUIntLE(24, 3);
+    if (t === 'VP8L') return 1 + (b.readUInt16LE(21) & 0x3fff);
+    return b.readUInt16LE(26) & 0x3fff;
+  }
+  for (let i = 2; i < b.length; ) { // JPEG : marqueur SOF
+    if (b[i] !== 0xff) return 0;
+    const m = b[i + 1], len = b.readUInt16BE(i + 2);
+    if (m >= 0xc0 && m <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(m)) return b.readUInt16BE(i + 7);
+    i += 2 + len;
+  }
+  return 0;
 }
 
 // ------------------------------------------------------------------ build
@@ -807,12 +926,6 @@ for (const p of pages) {
 }
 fs.cpSync(path.join(SRC, 'assets'), path.join(OUT, 'assets'), { recursive: true });
 for (const junk of ['.gitkeep']) for (const d of ['photos', 'logos', 'docs']) fs.rmSync(path.join(OUT, 'assets', d, junk), { force: true });
-
-// favicon
-fs.writeFileSync(
-  path.join(OUT, 'assets', 'favicon.svg'),
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#1f6b3f"/><rect x="8" y="8" width="16" height="16" fill="none" stroke="#fff" stroke-width="3"/></svg>`
-);
 
 // sitemap + robots
 const sm = pages.filter((p) => !p.noindex && !p.skipSitemap);
@@ -851,5 +964,19 @@ const slots = [...photoSlots.entries()].sort();
 fs.writeFileSync(
   path.join(ROOT, 'PHOTOS_MANIFEST.md'),
   `# Photos à fournir\n\nGénéré par \`node build.mjs\` (${TODAY}). Déposer chaque fichier dans \`src/assets/photos/\` (AVIF, WebP ou JPG) puis relancer le build : l'emplacement est remplacé automatiquement.\n\n| Fichier attendu | Usage |\n|---|---|\n${slots.map(([f, c]) => `| \`${f.replace('/assets/photos/', '')}\` | ${c} |`).join('\n')}\n\n${slots.length} emplacements.\n`
+);
+// rapport de remplissage (BRIEF V2 §3 et addendum)
+const lowLogos = [...logoInfo.entries()].filter(([, v]) => v.file && v.width && v.width < 300);
+const photosDir = path.join(SRC, 'assets', 'photos');
+const lowPhotos = [];
+const walk = (d) => fs.existsSync(d) && fs.readdirSync(d, { withFileTypes: true }).forEach((e) => {
+  const f = path.join(d, e.name);
+  if (e.isDirectory()) return walk(f);
+  if (/\.(jpe?g|png|webp)$/i.test(e.name)) { const w = imgWidth(f); if (w && w < 1200) lowPhotos.push([path.relative(photosDir, f), w]); }
+});
+walk(photosDir);
+fs.writeFileSync(
+  path.join(ROOT, 'FILLER_REPORT.md'),
+  `# Rapport de remplissage\n\nGénéré par \`node build.mjs\` (${TODAY}). Tout élément listé ici est provisoire : il est visuellement remplaçable et ne se présente jamais comme une photo, un chiffre ou une citation SIBM. Dans le code, le remplissage textuel et vectoriel porte \`data-filler="true"\`.\n\n## Éléments de remplissage\n\n| Élément | Où | Contenu réel qui le remplace |\n|---|---|---|\n${fillers.map((f) => `| ${f.what} | ${f.where} | ${f.replace} |`).join('\n')}\n\n## Emplacements photo [À FOURNIR]\n\n${slots.length} emplacements, détaillés dans \`PHOTOS_MANIFEST.md\`. Images de l’ancien site (\`assets/photos/\`, \`assets/clients/\`) : **non fournies dans le dépôt** et sibmci.com inaccessible depuis l’environnement de génération ; à déposer dans \`src/assets/photos/\` puis relancer le build.\n\n## Photos en basse résolution (moins de 1200 px de large)\n\n${lowPhotos.length ? lowPhotos.map(([f, w]) => `- \`${f}\` : ${w} px`).join('\n') : 'Aucune photo présente pour l’instant.'}\n\n## Logos clients\n\nAffichés en niveaux de gris (opacité .6), couleur au survol, au focus et, sur écran tactile, à l’entrée dans l’écran. ${[...logoInfo.values()].filter((v) => !v.file).length} logos sur ${D.clients.length} sont absents et remplacés par le nom en texte : ${[...logoInfo.entries()].filter(([, v]) => !v.file).map(([n]) => n).join(', ')}. Ne publier que les logos autorisés par chaque client.\n\nLogos de moins de 300 px de large : ${lowLogos.length ? lowLogos.map(([n, v]) => `${n} (${v.width} px)`).join(', ') : 'aucun fichier présent pour l’instant'}.\n\n## Contenus interdits en remplissage, laissés [À FOURNIR]\n\nDimensions, poids, classes de charge, normes, formulations, conditionnement, prix ; numéro de certificat, organisme certificateur, RCCM, forme juridique, capital, directeur de la publication, effectif ; témoignages, logos clients non autorisés, distinctions, années et maîtres d’ouvrage des références, personnes nommées. Liste détaillée : \`CONTENT_TODO.md\` et marques [À FOURNIR] sur les pages.\n\n## À vérifier par SIBM\n\n- « Premier fabricant de béton manufacturé certifié ISO 9001 (2015) en Côte d’Ivoire » : repris de l’ancien site. À confirmer qu’il est bien publié par SIBM, sinon le retirer (BRIEF V2 §3).\n- « Plus de 30 ans d’expérience » (bureau d’étude) : repris de l’ancien site.\n`
 );
 console.log(`OK : ${pages.length} pages, ${slots.length} emplacements photo vides -> ${path.relative(process.cwd(), OUT) || OUT}`);
