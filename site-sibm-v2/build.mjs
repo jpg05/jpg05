@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as D from './src/data/data.mjs';
 import fr from './src/i18n/fr.mjs';
+import * as V from './src/data/visuals.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.join(ROOT, 'src');
@@ -18,6 +19,7 @@ const WHATSAPP_NUMBER = (process.env.WHATSAPP_NUMBER || '').replace(/[^\d]/g, ''
 const PHONE_NUMBER = process.env.PHONE_NUMBER || D.tel(D.agencies[0].phones[0]);
 const YEAR = new Date().getFullYear();
 const TODAY = new Date().toISOString().slice(0, 10);
+const BUILD_ID = Date.now().toString(36);
 
 // Langues : français à la racine ; ajouter { en: import('./src/i18n/en.mjs') } plus tard (sortie sous /en/).
 const LOCALES = { fr };
@@ -35,6 +37,8 @@ const fmtDate = (iso) =>
 const pages = []; // { url, html, priority }
 const photoSlots = new Map(); // fichier attendu -> contexte
 const todoFlags = new Set();
+const fillers = []; // { what, where, replace } -> FILLER_REPORT.md
+const filler = (what, where, replace) => { if (!fillers.some((f) => f.what === what && f.where === where)) fillers.push({ what, where, replace }); };
 
 // ------------------------------------------------------------------ photos
 // Si /assets/photos/<nom>.avif|webp|jpg existe, on l'utilise ; sinon un emplacement repère est rendu.
@@ -57,9 +61,13 @@ function photo(name, { ratio = '4/3', alt = '', eager = false, sizes = '(min-wid
 }
 
 const todo = (L) => `<span class="todo">${L.todo}</span>`;
-const arrow = `<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 6h8"/><path d="M4.5 2.5 8 6l-3.5 3.5"/></svg>`;
-const btn = (href, label, kind = 'primary', arr = true) =>
-  `<a class="btn${kind === 'secondary' ? ' btn--secondary' : ''}" href="${href}">${esc(label)}${arr && kind === 'primary' ? arrow : ''}</a>`;
+const arrow = `<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="M1 6h8"/><path d="M4.5 2.5 8 6l-3.5 3.5"/></svg>`;
+// Boutons du système Taste Skill (.btn--primary / .btn--secondary). Le primaire est enveloppé dans .mag (effet magnétique,
+// BRIEF V2 §2.6) : c'est l'enveloppe qui bouge, jamais .btn, pour laisser la couche de survol du skill intacte.
+const btn = (href, label, kind = 'primary', arr = true, attrs = '') =>
+  kind === 'primary'
+    ? `<span class="mag"><a class="btn btn--primary" href="${href}"${attrs}>${esc(label)}${arr ? arrow : ''}</a></span>`
+    : `<a class="btn btn--secondary" href="${href}"${attrs}>${esc(label)}</a>`;
 const phoneLinks = (a) =>
   a.phones.map((p) => `<a class="link" href="tel:${D.tel(p)}">${D.phone(p)}</a>`).join('<br>');
 const osm = (a) => `https://www.openstreetmap.org/search?query=${encodeURIComponent(a.map)}`;
@@ -82,6 +90,7 @@ function layout(L, lang, p) {
     .map(([u, s]) => `<a href="${U(u)}">${esc(s.name)}<span>${esc(s.line)}</span></a>`)
     .join('');
   const ogImage = `${SITE_URL}/assets/og-default.png`;
+  filler('Image Open Graph (logo officiel sur fond blanc)', 'src/assets/og-default.png', 'Visuel de partage avec photo réelle d’usine ou de chantier');
   const jsonld = p.jsonld ? `<script type="application/ld+json">${JSON.stringify(p.jsonld)}</script>` : '';
   const footFam = D.families.map((f) => `<li><a href="${U('/produits/' + f.slug)}">${esc(f.name)}</a></li>`).join('');
   const footSites = D.agencies.map((a) => `<li><a href="${U('/contact#' + a.id)}">${esc(a.name)}</a></li>`).join('');
@@ -92,13 +101,24 @@ function layout(L, lang, p) {
       : ''
   }<a href="tel:${PHONE_NUMBER}" aria-label="${esc(L.callHq)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.6a1 1 0 0 1-.25 1z"/></svg></a></div>`;
 
+  // Bande CTA (BRIEF V2 §2.7) : une seule par page, seule section sombre, absente des pages formulaire.
+  const cta = p.cta === false ? '' : `
+<section class="cta-band" aria-labelledby="cta-title"><svg class="cta-band__lines" viewBox="0 0 600 400" aria-hidden="true" preserveAspectRatio="none"><path d="M0 400 L600 0 M80 400 L600 60 M160 400 L600 120 M240 400 L600 180 M0 300 H600 M0 200 H600 M0 100 H600"/></svg>
+  <div class="wrap cta-band__row">
+    <div><h2 class="t-h2" id="cta-title">${L.home.quoteTitle}</h2><p>${esc(L.home.quoteLead)}</p></div>
+    ${btn(U('/devis'), L.mainAction)}
+  </div>
+</section>`;
+
   return `<!doctype html>
-<html lang="${lang}">
+<html lang="${lang}" data-type="product" data-radius="soft" data-buttons="solid" data-motion>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(p.title)}</title>
 <meta name="description" content="${esc(p.description)}">
+<meta name="page-type" content="product">
+<meta name="site-kind" content="other">
 <link rel="canonical" href="${canonical}">
 ${p.noindex ? '<meta name="robots" content="noindex">' : ''}
 <meta property="og:type" content="website">
@@ -108,19 +128,25 @@ ${p.noindex ? '<meta name="robots" content="noindex">' : ''}
 <meta property="og:description" content="${esc(p.description)}">
 <meta property="og:url" content="${canonical}">
 <meta property="og:image" content="${ogImage}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#1f6b3f">
+<meta name="theme-color" content="#074914">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-<link rel="preload" href="/assets/fonts/archivo-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/fonts/hanken-grotesk-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/css/site.css?v=${TODAY}">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/besley-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/albert-sans-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/css/site.css?v=${BUILD_ID}">
+<link rel="stylesheet" href="/assets/vendor/taste/motion.css?v=${BUILD_ID}">
+<script>if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('fx')</script>
 ${jsonld}
 </head>
 <body data-endpoint="${esc(FORM_ENDPOINT)}" data-tel="${esc(D.phone(hq.phones[0]))}">
-<a class="sr" href="#main">${L.skip}</a>
+<!-- Taste Skill deal : kind product (site-kind other) · palette brand SIBM (#074914 / #DE251F, fond blanc) · type besley (Besley / Albert Sans) · hero product, stage = composition vectorielle (BRIEF V2) · nav-mega re-tirée en nav-split (pas de photo pour son panneau) · footer-columns · close-word · brand-band = bande CTA verte · buttons solid · radius soft -->
 <header class="nav">
   <div class="wrap nav__bar">
-    <a class="logo" href="${U('/')}" aria-label="SIBM, accueil"><span class="logo__mark" aria-hidden="true"></span>SIBM</a>
+    <a class="skip" href="#main">${L.skip}</a>
+    <a class="logo" href="${U('/')}" aria-label="SIBM, Société Ivoirienne de Béton Manufacturé, accueil"><img src="/assets/brand/sibm-logo-mark.svg" alt="" width="49" height="56"></a>
     <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" data-open="${L.menu}" data-close="${L.close}">${L.menu}</button>
     <nav class="nav__links" id="nav-links" aria-label="Principal">
       <div class="nav__item"><a class="nav__link" href="${U('/presentation')}"${cur('presentation')}>${L.nav.presentation}</a></div>
@@ -130,19 +156,20 @@ ${jsonld}
       <div class="nav__item"><a class="nav__link" href="${U('/actualites')}"${cur('actualites')}>${L.nav.news}</a></div>
       <div class="nav__item"><a class="nav__link" href="${U('/contact')}"${cur('contact')}>${L.nav.contact}</a></div>
     </nav>
-    <a class="btn nav__cta" href="${U('/devis')}">${L.mainAction}${arrow}</a>
+    <span class="mag nav__cta"><a class="btn btn--primary" href="${U('/devis')}">${L.mainAction}${arrow}</a></span>
   </div>
 </header>
 <main id="main">
 ${p.body}
 </main>
+${cta}
 <footer class="foot">
   <div class="wrap">
     <div class="foot__grid">
-      <div>
-        <a class="logo" href="${U('/')}" aria-label="SIBM, accueil"><span class="logo__mark" aria-hidden="true"></span>SIBM</a>
-        <p class="t-small muted" style="margin-top:16px">${D.company.name}. Béton préfabriqué depuis ${D.company.founded}.</p>
-        <p class="t-small" style="margin-top:16px"><a class="link" href="mailto:${D.company.email}">${D.company.email}</a></p>
+      <div class="foot__brand">
+        <a href="${U('/')}" aria-label="SIBM, accueil"><img src="/assets/brand/sibm-logo.svg" alt="SIBM, Société Ivoirienne de Béton Manufacturé" width="168" height="158" loading="lazy"></a>
+        <p class="t-small muted" style="margin-top:16px">Béton préfabriqué depuis ${D.company.founded}.</p>
+        <p class="t-small" style="margin-top:8px"><a class="link" href="mailto:${D.company.email}">${D.company.email}</a></p>
       </div>
       <div><h2>${L.footer.catalogue}</h2><ul>${footFam}</ul></div>
       <div><h2>${L.footer.company}</h2><ul>
@@ -160,12 +187,14 @@ ${p.body}
         <li><a href="${U('/reclamation')}">${L.footer.complaint}</a></li></ul></div>
       <div><h2>${L.footer.sites}</h2><ul>${footSites}</ul></div>
     </div>
-    <div class="foot__legal"><span>© ${YEAR} SIBM. ${L.footer.rights}</span><a class="link" href="${U('/mentions-legales')}">${L.footer.legal}</a></div>
+    <div class="foot__legal"><span>© ${YEAR} SIBM. ${L.footer.rights}</span><span>${L.footer.credits}</span><a class="link" href="${U('/mentions-legales')}">${L.footer.legal}</a></div>
   </div>
 </footer>
 ${p.noFab ? '' : fab}
 <script id="i18n-form" type="application/json">${JSON.stringify(L.form)}</script>
-<script src="/assets/js/site.js?v=${TODAY}" defer></script>
+<script src="/assets/js/site.js?v=${BUILD_ID}" defer></script>
+<script src="/assets/js/fx.js?v=${BUILD_ID}" defer></script>
+<script type="module" src="/assets/vendor/taste/motion.js?v=${BUILD_ID}"></script>
 </body>
 </html>
 `;
