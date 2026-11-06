@@ -23,6 +23,11 @@
     var p = new URLSearchParams(location.search);
     var fam = p.get('famille');
     var nom = p.get('nom');
+    var site = p.get('site');
+    if (site && qf.elements.site) {
+      qf.elements.site.value = site;
+      if (qf.elements.description && !qf.elements.description.value) qf.elements.description.placeholder = 'Site SIBM choisi : ' + site + '. Produits, quantités, date souhaitée.';
+    }
     if (fam && qf.elements.famille) qf.elements.famille.value = fam;
     if (nom) {
       var box = d.getElementById('produit-box');

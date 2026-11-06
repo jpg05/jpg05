@@ -88,7 +88,9 @@
   }
 
   // ------------------------------------------------ révélations au masque, tracés de plans, panneaux de références
-  io('.reveal-mask', function (el) { el.classList.add('is-in'); });
+  // les états masqués ne s'appliquent qu'une fois les observateurs armés (.fx-io) : sans eux, tout reste visible
+  if ('IntersectionObserver' in w) html.classList.add('fx-io');
+  io('.reveal-mask', function (el) { el.classList.add('is-in'); }, { threshold: 0 });
   d.querySelectorAll('.bp').forEach(function (svg) {
     svg.querySelectorAll('.s, .a').forEach(function (p) {
       try { p.style.setProperty('--len', Math.ceil(p.getTotalLength() + 2)); } catch (e) { /* forme sans longueur */ }

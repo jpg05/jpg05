@@ -149,12 +149,12 @@ ${jsonld}
     <a class="logo" href="${U('/')}" aria-label="SIBM, Société Ivoirienne de Béton Manufacturé, accueil"><img src="/assets/brand/sibm-logo-mark.svg" alt="" width="49" height="56"></a>
     <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" data-open="${L.menu}" data-close="${L.close}">${L.menu}</button>
     <nav class="nav__links" id="nav-links" aria-label="Principal">
-      <div class="nav__item"><a class="nav__link" href="${U('/presentation')}"${cur('presentation')}>${L.nav.presentation}</a></div>
-      <div class="nav__item"><a class="nav__link" href="${U('/produits')}"${cur('produits')}>${L.nav.products}</a><div class="nav__menu">${famMenu}</div></div>
-      <div class="nav__item"><a class="nav__link" href="${U('/services/bureau-d-etude')}"${cur('services')}>${L.nav.services}</a><div class="nav__menu">${svcMenu}</div></div>
-      <div class="nav__item"><a class="nav__link" href="${U('/references')}"${cur('references')}>${L.nav.references}</a></div>
-      <div class="nav__item"><a class="nav__link" href="${U('/actualites')}"${cur('actualites')}>${L.nav.news}</a></div>
-      <div class="nav__item"><a class="nav__link" href="${U('/contact')}"${cur('contact')}>${L.nav.contact}</a></div>
+      <div class="nav__item"><a class="nav__link m-link m-link--bare" href="${U('/presentation')}"${cur('presentation')}>${L.nav.presentation}</a></div>
+      <div class="nav__item"><a class="nav__link m-link m-link--bare" href="${U('/produits')}"${cur('produits')}>${L.nav.products}</a><div class="nav__menu">${famMenu}</div></div>
+      <div class="nav__item"><a class="nav__link m-link m-link--bare" href="${U('/services/bureau-d-etude')}"${cur('services')}>${L.nav.services}</a><div class="nav__menu">${svcMenu}</div></div>
+      <div class="nav__item"><a class="nav__link m-link m-link--bare" href="${U('/references')}"${cur('references')}>${L.nav.references}</a></div>
+      <div class="nav__item"><a class="nav__link m-link m-link--bare" href="${U('/actualites')}"${cur('actualites')}>${L.nav.news}</a></div>
+      <div class="nav__item"><a class="nav__link m-link m-link--bare" href="${U('/contact')}"${cur('contact')}>${L.nav.contact}</a></div>
     </nav>
     <span class="mag nav__cta"><a class="btn btn--primary" href="${U('/devis')}">${L.mainAction}${arrow}</a></span>
   </div>
@@ -163,13 +163,12 @@ ${jsonld}
 ${p.body}
 </main>
 ${cta}
-<footer class="foot">
+<footer class="foot footer">
   <div class="wrap">
     <div class="foot__grid">
       <div class="foot__brand">
         <a href="${U('/')}" aria-label="SIBM, accueil"><img src="/assets/brand/sibm-logo.svg" alt="SIBM, Société Ivoirienne de Béton Manufacturé" width="168" height="158" loading="lazy"></a>
-        <p class="t-small muted" style="margin-top:16px">Béton préfabriqué depuis ${D.company.founded}.</p>
-        <p class="t-small" style="margin-top:8px"><a class="link" href="mailto:${D.company.email}">${D.company.email}</a></p>
+        <p class="t-small" style="margin-top:24px"><a class="link" href="mailto:${D.company.email}">${D.company.email}</a></p>
       </div>
       <div><h2>${L.footer.catalogue}</h2><ul>${footFam}</ul></div>
       <div><h2>${L.footer.company}</h2><ul>
@@ -292,16 +291,17 @@ function homeBody(L, U) {
       const r = D.references.find((x) => x.slug === slug);
       const ph = ['avif', 'webp', 'jpg'].find((e) => fs.existsSync(path.join(SRC, 'assets', 'photos', 'references', `${slug}.${e}`)));
       if (!ph) filler(`Tracé vectoriel de l’ouvrage : ${r.name}`, 'Accueil, références', `Photo de chantier ou de l’ouvrage, src/assets/photos/references/${slug}.webp (droits à vérifier)`);
-      return `<article class="story__panel" id="story-${slug}">
+      return `<section class="story__panel" id="story-${slug}" aria-labelledby="story-${slug}-t">
         <div class="story__art" aria-hidden="true">${ph ? `<div class="photo"><img src="/assets/photos/references/${slug}.${ph}" alt="" loading="lazy"></div>` : V.landmarks[art]}</div>
         <div class="wrap"><div class="story__text">
+          ${i === 0 ? `<p class="eyebrow">03 · ${L.home.storyTitle}</p><p class="t-lead story__intro">${esc(L.home.refsLead)}</p>` : ''}
           <p class="story__n">${String(i + 1).padStart(2, '0')} / ${String(storyRefs.length).padStart(2, '0')}</p>
-          <h3 class="t-h2">${esc(r.name)}</h3>
+          <h2 class="t-h2" id="story-${slug}-t">${esc(r.name)}</h2>
           <p class="story__place">${esc(r.place)}</p>
           <div class="story__tags"><p class="t-label muted" style="margin-bottom:10px">${L.references.supplied}</p>${r.labels.map((x, k) => `<span class="tag" style="--i:${k}">${esc(x)}</span>`).join('')}</div>
           <p style="margin-top:24px"><a class="link" href="${U('/references#' + r.slug)}">${L.home.refsCta}</a></p>
         </div></div>
-      </article>`;
+      </section>`;
     })
     .join('');
 
@@ -348,7 +348,7 @@ function homeBody(L, U) {
     <h1 class="t-h1" id="hero-title" aria-label="${esc(L.home.h1)}">${L.home.h1Lines.map((l, i) => `<span class="ln" aria-hidden="true"><span style="--i:${i}">${l}</span></span>`).join('')}</h1>
     <p class="t-lead">${esc(L.home.lead)}</p>
     <div class="btn-row">${btn(U('/devis'), L.mainAction)}${btn(U('/produits'), L.home.ctaProducts, 'secondary')}</div>
-    <a class="scroll-cue" href="#familles"><i aria-hidden="true"></i>${L.home.scroll}</a>
+    <a class="scroll-cue m-link" href="#familles">${L.home.scroll}<i aria-hidden="true"></i></a>
   </div>
   <div class="wrap hero__foot">
     <h2 class="sr">${L.home.figuresTitle}</h2>
@@ -374,16 +374,15 @@ function homeBody(L, U) {
   </div>
 </div></section>
 
-<section class="story" aria-labelledby="story-title">
-  <div class="wrap" style="padding-top:var(--s-9)">${secHead('03', L.home.storyTitle, L.home.refsLead).replace('<h2 class="t-h2"', '<h2 class="t-h2" id="story-title"')}</div>
+<div class="story">
   ${story}
-</section>
+</div>
 
 <section class="sec sec--screens" style="--h:2" aria-labelledby="map-title"><div class="wrap">
   ${secHead('04', L.home.mapTitle, L.home.mapLead).replace('<h2 class="t-h2"', '<h2 class="t-h2" id="map-title"')}
   ${mapBlock}
   <div class="clients-block">
-  <h2 class="t-h3" id="clients-title" style="margin-bottom:24px">${L.home.clientsTitle}</h2>
+  <h3 class="card__title" id="clients-title" style="margin-bottom:16px">${L.home.clientsTitle}</h3>
   <div class="marquee" id="clients-marquee"><div class="marquee__track">${clientsList(false)}${clientsList(true)}</div></div>
   <button class="marquee__pause" type="button" data-marquee-pause aria-controls="clients-marquee" aria-pressed="false" data-pause="${L.home.marqueePause}" data-play="${L.home.marqueePlay}">${L.home.marqueePause}</button>
 </div>

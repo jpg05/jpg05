@@ -4,7 +4,6 @@ Généré par `node build.mjs` (2026-11-06). Déposer chaque fichier dans `src/a
 
 | Fichier attendu | Usage |
 |---|---|
-| `accueil/hero.webp` | Hero accueil : usine ou parc produits |
 | `actualites/archibat-2013.webp` | Actualité : Archibat 2013 |
 | `actualites/archibat-2017.webp` | Actualité : Archibat 2017 |
 | `actualites/assemblee-generale-du-gibtp.webp` | Actualité : Assemblée générale du GIBTP |
@@ -17,12 +16,6 @@ Généré par `node build.mjs` (2026-11-06). Déposer chaque fichier dans `src/a
 | `actualites/visite-dune-delegation-de-la-banque-mondiale-et-de-la-sfi.webp` | Actualité : Visite d’une délégation de la Banque mondiale et de la SFI |
 | `beton-sec/accueil.webp` | Béton sec SIBM (accueil) |
 | `beton-sec/produit.webp` | Béton sec SIBM : produit |
-| `familles/beton-sec.webp` | Famille : Béton sec SIBM |
-| `familles/energie-rail.webp` | Famille : Énergie et rail |
-| `familles/hydraulique-assainissement.webp` | Famille : Hydraulique et assainissement |
-| `familles/maconnerie-murs.webp` | Famille : Maçonnerie et murs |
-| `familles/structure-planchers.webp` | Famille : Structure et planchers |
-| `familles/voirie-pavage.webp` | Famille : Voirie et pavage |
 | `galerie/chantiers-1.webp` | Galerie : Chantiers 1 |
 | `galerie/chantiers-2.webp` | Galerie : Chantiers 2 |
 | `galerie/chantiers-3.webp` | Galerie : Chantiers 3 |
@@ -81,4 +74,4 @@ Généré par `node build.mjs` (2026-11-06). Déposer chaque fichier dans `src/a
 | `services/laboratoire.webp` | Service : Laboratoire d’essais béton aux normes internationales |
 | `services/logistique.webp` | Service : Livraison sur tout le territoire ivoirien |
 
-76 emplacements.
+69 emplacements.
